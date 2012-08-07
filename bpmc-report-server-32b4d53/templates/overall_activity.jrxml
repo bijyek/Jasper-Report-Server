@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="overall_activity" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="fdebaf72-6b4b-45bc-80c0-cc9e534a3ca5">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="ProcessInstance Info" uuid="d7695278-73a1-428b-8f70-6a239d05a4f4"/>
+	<subDataset name="Table Dataset 1" uuid="2f117887-e595-42f1-8fba-67a131da5855"/>
+	<queryString>
+		<![CDATA[select
+  p.PROCESSINSTANCEID,
+  p.PROCESSID,
+  p.START_DATE,
+  p.END_DATE
+from
+  PUBLIC.PROCESSINSTANCELOG as p]]>
+	</queryString>
+	<field name="PROCESSINSTANCEID" class="java.lang.Integer"/>
+	<field name="PROCESSID" class="java.lang.String"/>
+	<field name="START_DATE" class="java.sql.Timestamp"/>
+	<field name="END_DATE" class="java.sql.Timestamp"/>
+	<title>
+		<band height="79" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="43652b6d-9fc0-4dc2-b2c3-3235373a8833" x="364" y="24" width="100" height="20"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Business Activity Monitor]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch">
+			<elementGroup/>
+			<xyBarChart>
+				<chart>
+					<reportElement uuid="52681b29-4983-4f72-aa24-898e1c9ee321" x="145" y="15" width="200" height="100" forecolor="#000000"/>
+					<chartTitle color="#3333FF">
+						<titleExpression><![CDATA[$F{PROCESSID}.toString()]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle/>
+					<chartLegend backgroundColor="#CCCCFF"/>
+				</chart>
+				<xyDataset>
+					<xySeries>
+						<seriesExpression><![CDATA[$F{PROCESSINSTANCEID}.intValue()]]></seriesExpression>
+						<xValueExpression><![CDATA[$F{START_DATE}.getHours()]]></xValueExpression>
+						<yValueExpression><![CDATA[$F{PROCESSINSTANCEID}.intValue()]]></yValueExpression>
+					</xySeries>
+				</xyDataset>
+				<barPlot>
+					<plot/>
+					<itemLabel/>
+				</barPlot>
+			</xyBarChart>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>
