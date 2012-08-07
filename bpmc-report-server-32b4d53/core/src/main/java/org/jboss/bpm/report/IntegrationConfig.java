@@ -71,7 +71,7 @@ public class IntegrationConfig
 
    public String getImageDirectory()
    {
-      return getOutputDir()+"image/";
+      return getOutputDir()+ "image/";
    }
 
    private String ensureDirectoryName(String name)

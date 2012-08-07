@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileOutputStream;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -46,6 +47,10 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.util.JRSaver;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.export.JRHtmlExporter;
+import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
+import net.sf.jasperreports.engine.JRExporterParameter;
+
 
 
 import org.jboss.bpm.report.model.ReportParameter;
@@ -110,7 +115,7 @@ public class JasperService
       {
         loadReports();
         //compileReports();
-        //extractParameterMetaData();
+        extractParameterMetaData();
       }
       catch (Exception e)
       {
@@ -145,7 +150,7 @@ public class JasperService
     log.info("out reports size .."+reports.size());
   }
 
-  private void compileReports(String metadataReportName)
+  private void compileReports(RenderMetaData metaData)
   {
 	// Run-time report parameters
 		  Map parameters = new HashMap();
@@ -154,38 +159,55 @@ public class JasperService
 	try {
 		//log.info("Jasper Service created: ");
 		//File sourceFile = new File(iConfig.getReportDir() + "/AlterDesignReport.jrxml");
-		log.info(" metadataReportName : " + metadataReportName);
+		//log.info(" metadataReportName : " + metadataReportName);
 
-				File sourceFile = new File(iConfig.getReportDir() +"/overall_activity.jasper");
+				File sourceFile = new File(iConfig.getReportDir() + "/"+ metaData.getReportName());
 				//System.err.println(" : " + sourceFile.getAbsolutePath());
 				JasperReport jasperReport = (JasperReport)JRLoader.loadObject(sourceFile);
 
 				Connection conn = null;
-				String url = "jdbc:h2:tcp://localhost/~/test";
+				String url = "jdbc:hsqldb:C://brms-standalone-5.3.0/jboss-as/server/default/data/hypersonic/localDB";
 				try
 				{
-					Class.forName("org.h2.Driver");
+					Class.forName("org.hsqldb.jdbcDriver");
 					conn = DriverManager.getConnection(url,"sa","");
 				}
-				catch(SQLException sqle){}
-				catch(ClassNotFoundException cnfe){cnfe.printStackTrace();}
+				catch(SQLException sqle){sqle.printStackTrace();}
+				catch(ClassNotFoundException cnfe){
+					log.debug("from class not found exception");
+					cnfe.printStackTrace();
+					}
 
 
-				JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, null, conn);
+				JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, conn);
 
 				File destFile = new File(sourceFile.getParent(), jasperReport.getName() + ".jrprint");
+				File reportFile = new File(iConfig.getOutputDir()+"/overall_activity.html");
+				//FileOutputStream outputStream = new FileOutputStream(reportFile);
 				JRSaver.saveObject(jasperPrint, destFile);
-				JasperExportManager.exportReportToHtmlFile(destFile.getAbsolutePath(),iConfig.getOutputDir()+"/overall_activity.html");
+				JRHtmlExporter jrHtmlExporter = new JRHtmlExporter();
+				jrHtmlExporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+				jrHtmlExporter.setParameter(JRHtmlExporterParameter.IMAGES_URI, metaData.getImageBaseUrl());
+				jrHtmlExporter.setParameter(JRHtmlExporterParameter.IMAGES_DIR_NAME, iConfig.getImageDirectory());
+				//jrHtmlExporter.setParameter(JRHtmlExporterParameter.OUTPUT_FILE, reportFile);
+				jrHtmlExporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, reportFile.getAbsolutePath());
+				//jrHtmlExporter.setParameter(JRHtmlExporterParameter.OUTPUT_STREAM, outputStream);
+				jrHtmlExporter.exportReport();
+
+				//JasperExportManager.exportReportToHtmlFile(destFile.getAbsolutePath(),iConfig.getOutputDir()+"/overall_activity.html");
 
 	} catch (JRException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+	catch (Exception e) {
+
+	}
 
   }
-/*
 
-  private void extractParameterMetaData() throws EngineException
+
+  private void extractParameterMetaData()
   {
     Iterator<String> templateNames = reports.keySet().iterator();
     while(templateNames.hasNext())
@@ -196,6 +218,8 @@ public class JasperService
       // Update report reference details
       //String title = nonNull((String)template.getProperty(IReportRunnable.TITLE), "No title");
       //String description = nonNull((String)template.getProperty(IReportRunnable.DESCRIPTION), "No description");
+      String title = "overall activity report";
+      String description = "performance data";
       ReportReference reportRef = reports.get(templateName);
       reportRef.setTitle(title);
       reportRef.setDescription(description);
@@ -205,8 +229,9 @@ public class JasperService
 
       //Create Parameter Definition Task and retrieve parameter definitions
       //IGetParameterDefinitionTask task = engine.createGetParameterDefinitionTask( template );
-      Collection params = task.getParameterDefns( true );
+      //Collection params = task.getParameterDefns( true );
 
+/*
       //Iterate over each parameter
       Iterator iter = params.iterator( );
       while ( iter.hasNext( ) )
@@ -238,7 +263,8 @@ public class JasperService
         // cleanup
         task.close();
       }
-
+*/
+/*
       // update ReportReference.parameters
       ReportReference ref = reports.get(templateName);
       Iterator<String> paramNames = paramDetails.keySet().iterator();
@@ -253,13 +279,13 @@ public class JasperService
         paramRef.setPromptText((String)map.get("Prompt Text"));
         ref.getParameterMetaData().add(paramRef);
       }
-
+*/
 
     }
 
 
   }
-*/
+
   private static String nonNull(String candidate, String defaultValue)
   {
     return candidate != null ? candidate : defaultValue;
@@ -353,7 +379,8 @@ public class JasperService
         task.close();
     }
 */
-			compileReports(metaData.getReportName());
+			compileReports(metaData);
+			log.info("render......JS.1.."+metaData.getReportName());
 			outputFileName = metaData.getReportName()+".html";
 
 
@@ -424,7 +451,8 @@ public class JasperService
 
       String outputFileName = null;
 
-      log.debug("View " + metaData);
+      log.info("View........ " + metaData);
+      log.info("View........ " + metaData);
 
       //IRenderTask renderTask = null;
 
@@ -497,7 +525,7 @@ public class JasperService
         //if(renderTask !=null)
         //  renderTask.close();
       }
-
+		outputFileName = extactReportName(metaData.getReportName())+".html";
       return outputFileName;
   }
 /*

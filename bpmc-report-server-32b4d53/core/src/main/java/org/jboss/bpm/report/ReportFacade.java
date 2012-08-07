@@ -91,7 +91,7 @@ public class ReportFacade
 
       String birtDataDir = absServerDataDir;
       String defaultBirtHome = birtDataDir + "/ReportEngine";
-      String birtOutputDir = birtDataDir + "/output";
+      String birtOutputDir = birtDataDir;
 
       File birtOutput = new File(birtOutputDir);
       birtOutput.mkdirs(); // will create parent directoy as well
@@ -181,12 +181,14 @@ public class ReportFacade
       String outputFileName = jasperService.view(renderMeta);
       String absoluteFile = jasperService.getIntegrationConfig().getOutputDir() + outputFileName;
       log.debug("View " + absoluteFile);
+      log.info(" renderReportHtml from output directory ...absoluteFile." + absoluteFile);
 
       File reportFile = new File(absoluteFile);
       return Response.ok(reportFile).type("text/html").build();
     }
     catch(Throwable e1)
     {
+		log.info("from catch"+e1.toString());
       return gracefulException(e1);
     }
   }
@@ -219,11 +221,13 @@ public class ReportFacade
       String outputFileName = jasperService.render(renderMeta);
       String absoluteFile = jasperService.getIntegrationConfig().getOutputDir() + outputFileName;
       log.debug("Render " + absoluteFile);
+      log.info(" renderReportHtml from output directory ...." + fileName);
 
       return Response.ok().type("text/html").build();
     }
     catch(Throwable e1)
     {
+	  log.info("from catch"+e1.toString());
       return gracefulException(e1);
     }
   }
@@ -238,7 +242,7 @@ public class ReportFacade
   )
   {
     assertBirtAvailability();
-
+    log.info(".......getImage..");
     String imageDir = jasperService.getIntegrationConfig().getImageDirectory();
     String absName = imageDir + fileName;
     File imageFile = new File(absName);
@@ -259,13 +263,16 @@ public class ReportFacade
 
   private String buildImageUrl(HttpServletRequest request)
   {
+	  log.info(".......buildImageUrl..");
     StringBuffer sb = new StringBuffer();
     sb.append("http://");
     sb.append(request.getServerName()).append(":");
     sb.append(request.getServerPort());
     sb.append(request.getContextPath());
     sb.append(request.getServletPath());
-    sb.append("/report/view/image");
+    sb.append("/report/view/image/");
+
+    log.info("imgae path"+sb.toString());
     return sb.toString();
   }
 
